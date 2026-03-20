@@ -1,9 +1,11 @@
 import dotenv from 'dotenv'
-dotenv.config()
+dotenv.config({
+    path:'./env'
+})
 import express from 'express'
 const app=express()
 import mongoose from 'mongoose'
-
+import {app} from "./app.js"
 import connectDB from './config/db.js'
 console.log("ENV:", process.env.MONGO_URI)
 connectDB()
