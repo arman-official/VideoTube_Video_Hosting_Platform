@@ -6,4 +6,4 @@ const registerUser= asyncHandler( async(req,res) => {
     })
 })
 
-export {registerUser}
+module.exports ={registerUser}
