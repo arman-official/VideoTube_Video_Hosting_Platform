@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import {Schema} from mongoose;
+import {Schema} from "mongoose";
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 const userSchema= new Schema({
@@ -15,7 +15,7 @@ const userSchema= new Schema({
             type: String,
             required: true,
             unique: true,
-            lowecase: true,
+            lowercase: true,
             trim: true, 
         },
         fullName: {
@@ -26,7 +26,7 @@ const userSchema= new Schema({
         },
         avatar: {
             type: String, // will store in cloudnary and store its url
-            required: true,
+            // required: true,
         },
         coverImage: {
             type: String, // only url of uploaded image in cloudnary
@@ -50,11 +50,10 @@ const userSchema= new Schema({
 })
 
 
-userSchema.pre("save", async function(next){
-    if(!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+    if(!this.isModified("password")) return;
 
-    this.password= await bcrypt.hash(this.password, 10)
-    next()
+    this.password = await bcrypt.hash(this.password, 10)
 })
 
 
@@ -64,9 +63,9 @@ userSchema.methods.isPasswordCorrect= async function(password){
 }
 
 userSchema.methods.generateAccessToken=  function(){
-    jwt.sign(
+    return jwt.sign(
         {   
-            _id: this.id,
+            _id: this._id,
             email: this.email,
 
             username: this.username,
@@ -74,19 +73,19 @@ userSchema.methods.generateAccessToken=  function(){
         },
         process.env.ACCESS_TOKEN_SECRETS,
         {
-            expiryIn: process.env.ACCESS_TOKEN_EXPIRY
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
         }
     )
 }
 
 userSchema.methods.generateRefreshToken= function(){
-    jwt.sign(
+    return jwt.sign(
         {
             _id:this.id
         },
         process.env.REFRESH_TOKEN_SECRETS,
         {
-            expiryIn: process.env.REFRESH_TOKEN_EXPIRY
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
 
     )
