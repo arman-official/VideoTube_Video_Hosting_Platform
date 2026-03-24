@@ -114,11 +114,11 @@ const loginUser= asyncHandler( async(req,res)=>{
 
     const {email,username,password}=req.body
 
-    if(!username || !email){
+    if(!(username || email)){
         throw new ApiError(400,"username or pass req.")
     }
     const existedUser = await User.findOne({
-        $or: [{username},{email}]
+        $or : [{username},{email}] 
     })
     if(!existedUser){
         throw new ApiError(404,"user not found")
@@ -151,10 +151,10 @@ const loginUser= asyncHandler( async(req,res)=>{
 })
 
 const logoutUser= asyncHandler( async(req,res)=>{
-    req.user._id.findByIdAndUpdate(req.user._id,
+    await User.findByIdAndUpdate(req.user._id,
         {
             $set:{
-                refreshToken: undefined
+                refreshToken: ""
             }
         },
         {
