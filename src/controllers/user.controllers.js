@@ -32,13 +32,14 @@ const registerUser= asyncHandler( async(req,res) => {
     // remove password & refresh token from responce
     // check for user creation
     // return res
+    
 
 
 
     // load in db
 
 const {fullName, email, username, password } = req.body
-    console.log("email:",email)
+    // console.log("email:",email)
 
     // now to check koi field empty toh nahi..
 
