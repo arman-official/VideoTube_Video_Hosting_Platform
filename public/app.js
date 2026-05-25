@@ -1,6 +1,6 @@
 const output = document.getElementById("output");
 const API_BASE = "/api/v1/users";
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const show = (title, payload) => {
   output.textContent = `${title}\n\n${JSON.stringify(payload, null, 2)}`;
@@ -64,7 +64,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const payload = {
     password: form.password.value,
   };
-  if (emailPattern.test(identity)) {
+  if (EMAIL_PATTERN.test(identity)) {
     payload.email = identity;
   } else {
     payload.username = identity;
