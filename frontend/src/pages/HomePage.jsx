@@ -18,7 +18,18 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    fetchVideos()
+    let active = true
+    ;(async () => {
+      try {
+        const { data } = await api.get('/videos')
+        if (active) setVideos(data.data.items)
+      } finally {
+        if (active) setLoading(false)
+      }
+    })()
+    return () => {
+      active = false
+    }
   }, [])
 
   return (

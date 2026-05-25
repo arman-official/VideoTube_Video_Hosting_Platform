@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
+import mongoose from "mongoose";
 import { Video } from "../models/video.model.js";
 import { Comment } from "../models/comment.model.js";
 import { ApiError } from "../utils/apiError.js";
@@ -11,8 +13,19 @@ import { generateThumbnail } from "../utils/ffmpeg.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "../../");
+const uploadsRoot = path.resolve(projectRoot, "uploads");
 
 const toPublicPath = (absolutePath) => `/${path.relative(projectRoot, absolutePath).replace(/\\/g, "/")}`;
+const mimeToExt = (mimeType, fallback) => {
+  if (!mimeType) return fallback;
+  if (mimeType === "video/mp4") return ".mp4";
+  if (mimeType === "video/webm") return ".webm";
+  if (mimeType === "video/quicktime") return ".mov";
+  if (mimeType === "image/jpeg") return ".jpg";
+  if (mimeType === "image/png") return ".png";
+  if (mimeType === "image/webp") return ".webp";
+  return fallback;
+};
 
 export const uploadVideo = asyncHandler(async (req, res) => {
   if (!req.files?.video?.[0]) {
@@ -22,18 +35,17 @@ export const uploadVideo = asyncHandler(async (req, res) => {
   const { title, description = "" } = req.body;
   if (!title) throw new ApiError(400, "title is required");
 
-  const videoTempPath = req.files.video[0].path;
-  const videoFileName = `${Date.now()}-${req.files.video[0].originalname.replace(/\s+/g, "-")}`;
-  const videoDestPath = path.resolve(projectRoot, "uploads/videos", videoFileName);
-  fs.renameSync(videoTempPath, videoDestPath);
+  const videoExt = mimeToExt(req.files.video[0].mimetype, ".mp4");
+  const videoDestPath = path.resolve(projectRoot, "uploads/videos", `${randomUUID()}${videoExt}`);
+  await fs.promises.writeFile(videoDestPath, req.files.video[0].buffer);
 
   let thumbnailDestPath = "";
   if (req.files.thumbnail?.[0]) {
-    const thumbnailName = `${Date.now()}-${req.files.thumbnail[0].originalname.replace(/\s+/g, "-")}`;
-    thumbnailDestPath = path.resolve(projectRoot, "uploads/thumbnails", thumbnailName);
-    fs.renameSync(req.files.thumbnail[0].path, thumbnailDestPath);
+    const thumbnailExt = mimeToExt(req.files.thumbnail[0].mimetype, ".jpg");
+    thumbnailDestPath = path.resolve(projectRoot, "uploads/thumbnails", `${randomUUID()}${thumbnailExt}`);
+    await fs.promises.writeFile(thumbnailDestPath, req.files.thumbnail[0].buffer);
   } else {
-    const thumbnailName = `${path.parse(videoFileName).name}.jpg`;
+    const thumbnailName = `${path.parse(path.basename(videoDestPath)).name}.jpg`;
     const generatedPath = path.resolve(projectRoot, "uploads/thumbnails", thumbnailName);
     const generated = await generateThumbnail(videoDestPath, generatedPath);
     thumbnailDestPath = generated ? generatedPath : "";
@@ -55,27 +67,25 @@ export const listVideos = asyncHandler(async (req, res) => {
   const page = Number(req.query.page || 1);
   const limit = Math.min(Number(req.query.limit || 12), 50);
   const q = req.query.q?.trim();
-  const owner = req.query.owner;
-
-  const query = {};
-  if (q) {
-    query.$or = [
-      { title: { $regex: q, $options: "i" } },
-      { description: { $regex: q, $options: "i" } }
-    ];
+  const ownerFilter = req.query.owner;
+  if (ownerFilter && !mongoose.isValidObjectId(ownerFilter)) {
+      throw new ApiError(400, "Invalid owner id");
   }
-  if (owner) {
-    query.owner = owner;
-  }
+  const safeQuery = (q || "").toLowerCase().trim().slice(0, 120);
 
-  const [videos, total] = await Promise.all([
-    Video.find(query)
-      .populate("owner", "username fullName")
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit),
-    Video.countDocuments(query)
-  ]);
+  const allVideos = await Video.find({})
+    .populate("owner", "username fullName")
+    .sort({ createdAt: -1 });
+
+  const filtered = allVideos.filter((video) => {
+    const ownerMatched = ownerFilter ? String(video.owner?._id) === ownerFilter : true;
+    if (!ownerMatched) return false;
+    if (!safeQuery) return true;
+    const searchable = `${video.title} ${video.description}`.toLowerCase();
+    return searchable.includes(safeQuery);
+  });
+  const total = filtered.length;
+  const videos = filtered.slice((page - 1) * limit, page * limit);
 
   res.status(200).json(new ApiResponse(200, { items: videos, page, limit, total }, "Videos fetched"));
 });
@@ -97,9 +107,16 @@ export const streamVideo = asyncHandler(async (req, res) => {
   if (!video) throw new ApiError(404, "Video not found");
 
   const absoluteVideoPath = path.resolve(projectRoot, video.videoPath.slice(1));
-  if (!fs.existsSync(absoluteVideoPath)) throw new ApiError(404, "Video file missing");
+  if (!absoluteVideoPath.startsWith(path.resolve(uploadsRoot, "videos"))) {
+    throw new ApiError(400, "Invalid video path");
+  }
+  try {
+    await fs.promises.access(absoluteVideoPath, fs.constants.R_OK);
+  } catch {
+    throw new ApiError(404, "Video file missing");
+  }
 
-  const stat = fs.statSync(absoluteVideoPath);
+  const stat = await fs.promises.stat(absoluteVideoPath);
   const fileSize = stat.size;
   const range = req.headers.range;
 

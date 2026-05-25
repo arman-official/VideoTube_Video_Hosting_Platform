@@ -3,6 +3,15 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { signToken } from "../utils/jwt.js";
+import fs from "node:fs";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+
+const avatarExt = (mimeType) => {
+  if (mimeType === "image/png") return ".png";
+  if (mimeType === "image/webp") return ".webp";
+  return ".jpg";
+};
 
 export const register = asyncHandler(async (req, res) => {
   const { fullName, email, username, password } = req.body;
@@ -14,7 +23,13 @@ export const register = asyncHandler(async (req, res) => {
   const existing = await User.findOne({ $or: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }] });
   if (existing) throw new ApiError(409, "Email or username already exists");
 
-  const avatar = req.file ? `/${req.file.path.replace(/\\/g, "/")}` : "";
+  let avatar = "";
+  if (req.file?.buffer) {
+    const fileName = `${randomUUID()}${avatarExt(req.file.mimetype)}`;
+    const filePath = path.resolve("uploads/avatars", fileName);
+    await fs.promises.writeFile(filePath, req.file.buffer);
+    avatar = `/uploads/avatars/${fileName}`;
+  }
   const user = await User.create({
     fullName,
     email,

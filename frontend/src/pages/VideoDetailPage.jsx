@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ReactPlayer from 'react-player'
 import toast from 'react-hot-toast'
 import { api } from '../api'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 
 export default function VideoDetailPage() {
   const { id } = useParams()
@@ -12,17 +12,30 @@ export default function VideoDetailPage() {
   const [comments, setComments] = useState([])
   const [commentText, setCommentText] = useState('')
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const [videoRes, commentRes] = await Promise.all([
       api.get(`/videos/${id}`),
       api.get(`/videos/${id}/comments`)
     ])
     setVideo(videoRes.data.data)
     setComments(commentRes.data.data)
-  }
+  }, [id])
 
   useEffect(() => {
-    load()
+    let active = true
+    ;(async () => {
+      const [videoRes, commentRes] = await Promise.all([
+        api.get(`/videos/${id}`),
+        api.get(`/videos/${id}/comments`)
+      ])
+      if (active) {
+        setVideo(videoRes.data.data)
+        setComments(commentRes.data.data)
+      }
+    })()
+    return () => {
+      active = false
+    }
   }, [id])
 
   const addComment = async () => {

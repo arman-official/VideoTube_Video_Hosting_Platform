@@ -11,7 +11,12 @@ export const verifyJWT = asyncHandler(async (req, _res, next) => {
     throw new ApiError(401, "No token provided");
   }
 
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    throw new ApiError(401, "Invalid token");
+  }
   const user = await User.findById(decoded._id).select("-password");
 
   if (!user) {
