@@ -1,6 +1,5 @@
 const output = document.getElementById("output");
 const API_BASE = "/api/v1/users";
-const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const show = (title, payload) => {
   output.textContent = `${title}\n\n${JSON.stringify(payload, null, 2)}`;
@@ -35,15 +34,6 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   const form = e.currentTarget;
   const formData = new FormData(form);
 
-  const avatar = form.avatar.files[0];
-  const coverImage = form.coverImage.files[0];
-  if (!avatar) {
-    formData.delete("avatar");
-  }
-  if (!coverImage) {
-    formData.delete("coverImage");
-  }
-
   try {
     const data = await callApi("/register", {
       method: "POST",
@@ -62,13 +52,10 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const identity = form.identity.value.trim();
 
   const payload = {
+    username: identity,
+    email: identity,
     password: form.password.value,
   };
-  if (EMAIL_PATTERN.test(identity)) {
-    payload.email = identity;
-  } else {
-    payload.username = identity;
-  }
 
   try {
     const data = await callApi("/login", {
