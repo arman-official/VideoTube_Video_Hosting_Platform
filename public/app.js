@@ -1,12 +1,21 @@
 const output = document.getElementById("output");
 const API_BASE = "/api/v1/users";
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const show = (title, payload) => {
   output.textContent = `${title}\n\n${JSON.stringify(payload, null, 2)}`;
 };
 
 const readJson = async (response) => {
-  const data = await response.json().catch(() => ({}));
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    data = {
+      success: false,
+      message: `Request failed with status ${response.status}`,
+    };
+  }
   if (!response.ok) {
     throw data;
   }
@@ -55,7 +64,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const payload = {
     password: form.password.value,
   };
-  if (identity.includes("@")) {
+  if (emailPattern.test(identity)) {
     payload.email = identity;
   } else {
     payload.username = identity;
