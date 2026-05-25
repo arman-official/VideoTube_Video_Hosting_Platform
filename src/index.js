@@ -1,18 +1,16 @@
-import dotenv from 'dotenv'
-dotenv.config({
-    path:'./.env'
-})
-import app from "./app.js"
-import connectDB from './config/db.js'
-console.log("ENV:", process.env.MONGO_URI)
-connectDB()
-const PORT= process.env.PORT || 3000
+import dotenv from "dotenv";
+import app from "./app.js";
+import connectDB from "./config/db.js";
 
+dotenv.config({ path: "./.env" });
 
-app.get("/",(req,res)=>{
-    res.send('server is running')
-})
+const PORT = process.env.PORT || 8000;
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  throw new Error("JWT_SECRET must be set and at least 32 characters long");
+}
 
-app.listen(PORT,()=>{
-    console.log( `server is running at ${PORT}`)
-})
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`server is running at ${PORT}`);
+  });
+});
