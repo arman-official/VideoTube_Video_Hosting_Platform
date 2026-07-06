@@ -27,6 +27,13 @@ const mimeToExt = (mimeType, fallback) => {
   return fallback;
 };
 
+const extToVideoMime = (filePath) => {
+  const extension = path.extname(filePath).toLowerCase();
+  if (extension === ".webm") return "video/webm";
+  if (extension === ".mov") return "video/quicktime";
+  return "video/mp4";
+};
+
 export const uploadVideo = asyncHandler(async (req, res) => {
   if (!req.files?.video?.[0]) {
     throw new ApiError(400, "video file is required");
@@ -119,17 +126,23 @@ export const streamVideo = asyncHandler(async (req, res) => {
   const stat = await fs.promises.stat(absoluteVideoPath);
   const fileSize = stat.size;
   const range = req.headers.range;
+  const contentType = extToVideoMime(absoluteVideoPath);
 
   if (range) {
     const [startText, endText] = range.replace(/bytes=/, "").split("-");
     const start = parseInt(startText, 10);
     const end = endText ? parseInt(endText, 10) : fileSize - 1;
+    const invalidRange = Number.isNaN(start) || Number.isNaN(end) || start < 0 || end >= fileSize || start > end;
+    if (invalidRange) {
+      res.setHeader("Content-Range", `bytes */${fileSize}`);
+      throw new ApiError(416, "Requested range not satisfiable");
+    }
 
     res.writeHead(206, {
       "Content-Range": `bytes ${start}-${end}/${fileSize}`,
       "Accept-Ranges": "bytes",
       "Content-Length": end - start + 1,
-      "Content-Type": "video/mp4"
+      "Content-Type": contentType
     });
 
     fs.createReadStream(absoluteVideoPath, { start, end }).pipe(res);
@@ -138,7 +151,7 @@ export const streamVideo = asyncHandler(async (req, res) => {
 
   res.writeHead(200, {
     "Content-Length": fileSize,
-    "Content-Type": "video/mp4"
+    "Content-Type": contentType
   });
   fs.createReadStream(absoluteVideoPath).pipe(res);
 });

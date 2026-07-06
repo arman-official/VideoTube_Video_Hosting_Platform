@@ -33,19 +33,20 @@ export default function UploadPage() {
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4 rounded border border-slate-800 bg-slate-900 p-6">
-      <h1 className="text-xl font-bold">Upload Video</h1>
-      <input className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
-      <textarea className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
-      <div>
-        <label className="mb-1 block text-sm text-slate-300">Video file</label>
+    <form onSubmit={submit} className="space-y-4 rounded-3xl border border-white/10 bg-slate-900/70 p-6 md:p-8">
+      <p className="text-sm uppercase tracking-[0.2em] text-indigo-200">Creator studio</p>
+      <h1 className="text-2xl font-bold text-white">Upload your next video</h1>
+      <input className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none transition focus:border-indigo-400" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+      <textarea className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none transition focus:border-indigo-400" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
+      <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
+        <label className="mb-2 block text-sm font-medium text-slate-300">Video file</label>
         <input type="file" accept="video/*" onChange={(e) => setVideo(e.target.files?.[0] || null)} required />
       </div>
-      <div>
-        <label className="mb-1 block text-sm text-slate-300">Thumbnail (optional)</label>
+      <div className="rounded-xl border border-white/10 bg-slate-950/60 p-4">
+        <label className="mb-2 block text-sm font-medium text-slate-300">Thumbnail (optional)</label>
         <input type="file" accept="image/*" onChange={(e) => setThumbnail(e.target.files?.[0] || null)} />
       </div>
-      <button className="rounded bg-indigo-600 px-4 py-2">Upload</button>
+      <button className="rounded-xl bg-indigo-500 px-5 py-3 font-semibold text-white transition hover:bg-indigo-400">Upload</button>
     </form>
   )
 }
