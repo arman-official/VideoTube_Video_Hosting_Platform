@@ -22,14 +22,17 @@ export default function RegisterPage() {
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto max-w-md space-y-4 rounded border border-slate-800 bg-slate-900 p-6">
-      <h1 className="text-xl font-bold">Register</h1>
-      <input className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2" placeholder="Full name" value={form.fullName} onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))} />
-      <input className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2" placeholder="Username" value={form.username} onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))} />
-      <input className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2" placeholder="Email" value={form.email} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
-      <input type="password" className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2" placeholder="Password" value={form.password} onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))} />
-      <button className="w-full rounded bg-indigo-600 py-2">Create account</button>
-      <p className="text-sm text-slate-400">Already have an account? <Link to="/login" className="text-indigo-300">Login</Link></p>
-    </form>
+    <section className="mx-auto max-w-md rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-black/30 md:p-8">
+      <p className="text-sm uppercase tracking-[0.2em] text-cyan-200">Get started</p>
+      <h1 className="mt-2 text-2xl font-bold text-white">Create your account</h1>
+      <form onSubmit={submit} className="mt-6 space-y-4">
+        <input className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none transition focus:border-cyan-400" placeholder="Full name" value={form.fullName} onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))} />
+        <input className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none transition focus:border-cyan-400" placeholder="Username" value={form.username} onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))} />
+        <input className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none transition focus:border-cyan-400" placeholder="Email" value={form.email} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
+        <input type="password" className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none transition focus:border-cyan-400" placeholder="Password" value={form.password} onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))} />
+        <button className="w-full rounded-xl bg-cyan-500 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400">Create account</button>
+      </form>
+      <p className="mt-4 text-sm text-slate-400">Already have an account? <Link to="/login" className="text-indigo-300 hover:text-indigo-200">Login</Link></p>
+    </section>
   )
 }

@@ -38,19 +38,24 @@ export default function ProfilePage() {
 
   return (
     <section className="space-y-6">
-      <form onSubmit={update} className="space-y-3 rounded border border-slate-800 bg-slate-900 p-6">
-        <h1 className="text-xl font-bold">Profile</h1>
-        <input className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2" value={form.fullName ?? user?.fullName ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))} />
-        <input className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2" value={form.email ?? user?.email ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
-        <input type="password" className="w-full rounded border border-slate-700 bg-slate-950 px-3 py-2" placeholder="New password (optional)" value={form.password} onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))} />
-        <button className="rounded bg-indigo-600 px-4 py-2">Save changes</button>
+      <form onSubmit={update} className="space-y-3 rounded-3xl border border-white/10 bg-slate-900/70 p-6">
+        <p className="text-sm uppercase tracking-[0.2em] text-indigo-200">My account</p>
+        <h1 className="text-2xl font-bold text-white">Profile settings</h1>
+        <input className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none transition focus:border-indigo-400" value={form.fullName ?? user?.fullName ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))} />
+        <input className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none transition focus:border-indigo-400" value={form.email ?? user?.email ?? ''} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
+        <input type="password" className="w-full rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3 outline-none transition focus:border-indigo-400" placeholder="New password (optional)" value={form.password} onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))} />
+        <button className="rounded-xl bg-indigo-500 px-5 py-2.5 font-semibold text-white transition hover:bg-indigo-400">Save changes</button>
       </form>
 
       <div>
-        <h2 className="mb-3 text-lg font-semibold">Your uploads</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {videos.map((video) => <VideoCard key={video._id} video={video} />)}
-        </div>
+        <h2 className="mb-3 text-lg font-semibold text-white">Your uploads</h2>
+        {videos.length ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {videos.map((video) => <VideoCard key={video._id} video={video} />)}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-white/20 bg-slate-900/50 p-8 text-center text-slate-400">You have not uploaded videos yet.</div>
+        )}
       </div>
     </section>
   )
